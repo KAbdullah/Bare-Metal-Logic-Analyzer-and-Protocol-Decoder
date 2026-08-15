@@ -63,6 +63,10 @@ SECTIONS
     PROVIDE(edata = .);
   } > SRAM1 AT> FLASH
 
+/*This basically takes the Flash address of .data section, so it can be used in startup.c to 
+move the .data FLASH address to the .data RAM address*/
+  _sidata = LOADADDR(.data);
+
 /*Reserved for uninitialized data*/
   .bss : {
     . = ALIGN(4);
