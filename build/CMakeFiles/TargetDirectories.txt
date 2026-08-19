@@ -1,0 +1,4 @@
+/home/abdullahkhatib/Bare-Metal-Logic-Analyzer-and-Protocol-Decoder/build/CMakeFiles/output.elf.dir
+/home/abdullahkhatib/Bare-Metal-Logic-Analyzer-and-Protocol-Decoder/build/CMakeFiles/flash.dir
+/home/abdullahkhatib/Bare-Metal-Logic-Analyzer-and-Protocol-Decoder/build/CMakeFiles/edit_cache.dir
+/home/abdullahkhatib/Bare-Metal-Logic-Analyzer-and-Protocol-Decoder/build/CMakeFiles/rebuild_cache.dir
