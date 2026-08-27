@@ -22,7 +22,7 @@ void Reset_Handler(void) {
   src = (uint32_t *) &_sidata;
   dst = (uint32_t *) &_sdata;
 
-  while ((uint32_t *) &_edata != dst) {
+  while (dst < (uint32_t *) &_edata) {
     *dst = *src;
     dst++;
     src++;
@@ -30,7 +30,7 @@ void Reset_Handler(void) {
 
   dst = (uint32_t *) &_sbss;
 
-  while (dst != (uint32_t *) &_ebss) {
+  while (dst < (uint32_t *) &_ebss) {
     *dst = 0;
     dst++;
   }
