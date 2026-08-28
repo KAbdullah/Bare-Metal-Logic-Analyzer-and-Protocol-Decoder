@@ -31,6 +31,8 @@ target_compile_options("output.elf"
     -mfloat-abi=hard   
     -O0
     -ggdb
+    -Wall
+    -Wextra
 )
 
 target_link_options("output.elf"

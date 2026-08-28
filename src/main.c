@@ -100,12 +100,27 @@ int main (void) {
 
 
   //STARTING THE I2C
-  //enable peripheral
-  // I2C1->I2C_CR1 |= (1 << 0);
-  // //set start condition to go into controller mode
-  // I2C1->I2C_CR1 |= (1 << 8);
+  //Program the peripheral input clock
+  I2C1->I2C_CR2 &= ~(0b11111 << 0);
+  I2C1->I2C_CR2 |= (0b10000 << 0);
+  
+  //Configure the clock control registers
+  //reset
+  I2C1->I2C_CCR &= ~(0xFFFF << 0);
+  //Select FM mode
+  I2C1->I2C_CCR |= (1 << 15);
+  
+  //Select DUTY, since 16MHz not multiple of 10Mhz, we do 2
+  I2C1->I2C_CCR &= ~(1 << 14);
+  I2C1->I2C_CCR |= (0 << 14);
 
+  //Set CCR
+  I2C1->I2C_CCR &= ~(0b111111111111 << 0);
+  I2C1->I2C_CCR |= (13 << 0);
 
+  //Set TRISE -> 300 / 62.5 = 4.8 => 4 + 1 => 5; 4 * 62.5  = 250ns or 4 SYSCLK ticks is the max safe limit to rise from 0 to 1
+  I2C1->I2C_TRISE &= ~(0b111111 << 0);
+  I2C1->I2C_TRISE |= (0b000101);
 
   //Start condition to get into controller mode
 
