@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+void I2C1_EV_IRQHandler (void);
+
 typedef struct {
   uint32_t GPIOx_MODER;
   uint32_t GPIOx_OTYPER;
@@ -20,6 +22,7 @@ typedef struct {
 #define RCC_CR (*((volatile uint32_t *)(RCC + 0x00)))
 #define RCC_CFGR (*((volatile uint32_t *)(RCC + 0x08)))
 #define RCC_AHB1ENR (*((volatile uint32_t *)(RCC + 0x30)))
+#define RCC_APB1ENR (*((volatile uint32_t *)(RCC + 0x40)))
 
 //Probably not this, because it's GPIOB, but I'll check
 #define GPIOB ((volatile GPIO_Struct *) 0x40020400)
@@ -99,6 +102,9 @@ int main (void) {
   (void)GPIOB->GPIOx_LCKR;
 
 
+  //Turn on I2C clock
+  RCC_APB1ENR |= (1 << 21);
+
   //STARTING THE I2C
   //Program the peripheral input clock
   I2C1->I2C_CR2 &= ~(0b11111 << 0);
@@ -114,18 +120,40 @@ int main (void) {
   I2C1->I2C_CCR &= ~(1 << 14);
   I2C1->I2C_CCR |= (0 << 14);
 
-  //Set CCR
-  I2C1->I2C_CCR &= ~(0b111111111111 << 0);
-  I2C1->I2C_CCR |= (13 << 0);
+  //Set CCR, how? A few things to clear up: 
+  // 1) Tlow and Thigh indicate how many ticks aka clocks that they need to stay at their respective levels, so Tlow = 2Thigh means Tlow will be at that level for two PCLK (peripheral clock cycles)
+  // 2) Ttotal = Tlow + Thigh 
+  // 3) CCR = Ttotal / TPCLK => CCR = Total / 3 * TPCLK
+  I2C1->I2C_CCR |= (14 << 0);
 
   //Set TRISE -> 300 / 62.5 = 4.8 => 4 + 1 => 5; 4 * 62.5  = 250ns or 4 SYSCLK ticks is the max safe limit to rise from 0 to 1
   I2C1->I2C_TRISE &= ~(0b111111 << 0);
   I2C1->I2C_TRISE |= (0b000101);
 
+  //Enable interrupt ITEVTEN and ITBUFEN
+  I2C1->I2C_CR2 |= (1 << 9) | (1 << 10);
+
+  //Peripheral start
+  I2C1->I2C_CR1 |= (1 << 0);
+
+  __asm("cpsie i"); // Change Processor State to enable interrupt 
+  //0xE000E100 is the NVIC base address 
+  *((volatile uint32_t *)0xE000E100) |= (1 << 31); //I2C interrupt is number 31, so enable it to 1.
+
   //Start condition to get into controller mode
+  I2C1->I2C_CR1 |= (1 << 8);
 
   while(1) {
 
   }
 
+}
+
+void I2C1_EV_IRQHandler (void) {
+  //I do only 1, then everything else is set to 0, so 0b0000000000000001
+  if (I2C1->I2C_SR1 & (1 << 0)) {
+    (void)I2C1->I2C_SR1;
+    //THE SGP30 uses 7 bits addressing, so we send the address starting at bit 1 and reserve the LSB as 0 (reset) to enter transmitter mode
+    I2C1->I2C_DR = (0x58 << 1);
+  }
 }
