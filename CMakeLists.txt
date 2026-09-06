@@ -30,7 +30,7 @@ target_compile_options("output.elf"
     -mfpu=fpv4-sp-d16 
     -mfloat-abi=hard   
     -O0
-    -ggdb
+    -g3
     -Wall
     -Wextra
 )
